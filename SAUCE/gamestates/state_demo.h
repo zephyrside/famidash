@@ -16,7 +16,9 @@ void state_demo(){
     mmc3_set_1kb_chr_bank_3(15);
 
 	oam_clear();
+	pal_col(0,0x17);
 	ppu_on_all();
+	
 	pal_fade_to(0,4);
 	while (1){
 		ppu_wait_nmi();
