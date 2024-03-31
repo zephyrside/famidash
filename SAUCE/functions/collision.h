@@ -16,7 +16,7 @@ char bg_collision_sub(void){
 }
 
 // replaces tmp5 = add_scroll_y(tmp1, scroll_y); temp_y = low_byte(tmp5); temp_room = high_byte(tmp5);
-#define add_scroll_y_base(a, b) asm("lda %v\n jsr pusha \n lda %v \n ldx %v+1 \n jsr %g \n ", a, b, b, add_scroll_y)
+#define add_scroll_y_base(a, b) asm("lda %v\n jsr pusha \n lda %v \n ldx %v+1 \n jsr %v \n ", a, b, b, add_scroll_y)
 #define add_scroll_y_store_to_temp_y_room(a, b) add_scroll_y_base(a, b); asm("sta %v \n stx %v ", temp_y, temp_room)
 
 
