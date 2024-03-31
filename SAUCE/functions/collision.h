@@ -16,7 +16,7 @@ char bg_collision_sub(void){
 }
 
 // replaces tmp5 = add_scroll_y(tmp1, scroll_y); temp_y = low_byte(tmp5); temp_room = high_byte(tmp5);
-#define add_scroll_y_base(a, b) asm("lda %v\n jsr pusha \n lda %v \n ldx %v+1 \n jsr _add_scroll_y \n ", a, b, b)
+#define add_scroll_y_base(a, b) asm("lda %v\n jsr pusha \n lda %v \n ldx %v+1 \n jsr %g \n ", a, b, b, add_scroll_y)
 #define add_scroll_y_store_to_temp_y_room(a, b) add_scroll_y_base(a, b); asm("sta %v \n stx %v ", temp_y, temp_room)
 
 
@@ -65,43 +65,29 @@ char bg_coll_U(void){
 }
 
 char bg_coll_D(void){
-	if(bg_collision_sub() & COL_BOTTOM) {
-		// check 2 points on the bottom side
-		temp_x = Generic.x + low_byte(scroll_x) -1;
+    // check 2 points in the middle
+    tmp1 = Generic.y + (Generic.height/2);
+    add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
+    eject_D = (temp_y + 1) & 0x0f;
 
-		tmp1 = Generic.y + (Generic.height/2);
-		add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
-		eject_D = (temp_y + 1) & 0x0f;
-		if(bg_collision_sub() & COL_BOTTOM) return 1;
+    temp_x = Generic.x + low_byte(scroll_x) - 1;
+    // asm("lda %v \n pha", temp_x);
+    if(bg_collision_sub() & COL_BOTTOM) return 1;
+    temp_x += 2 + Generic.x;    // temp_x = Generic.x + low_byte(scroll_x) + Generic.width + 1;
+    if(bg_collision_sub() & COL_BOTTOM) return 1;
 
-		temp_x = Generic.x + low_byte(scroll_x) + Generic.width +1;
 
-		if(bg_collision_sub() & COL_BOTTOM) return 1;
+    // check 2 points on the bottom side
+    temp_x = Generic.x + low_byte(scroll_x) -1;
+    add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
+    eject_D = (temp_y + 1) & 0x0f;
 
-		return 0;		
-		
-		
-		
-		
-	}
-	
-	
-	else {
-		// check 2 points on the bottom side
-		temp_x = Generic.x + low_byte(scroll_x) -1;
+    tmp1 = Generic.y + Generic.height;
+    if(bg_collision_sub() & COL_ALL) return 1;
+    temp_x += 2 + Generic.x;    // temp_x = Generic.x + low_byte(scroll_x) + Generic.width + 1;
+    if(bg_collision_sub() & COL_ALL) return 1;
 
-		tmp1 = Generic.y + Generic.height;
-		add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
-		eject_D = (temp_y + 1) & 0x0f;
-		if(bg_collision_sub() & COL_ALL) return 1;
-		
-        // temp_x = Generic.x + low_byte(scroll_x) + Generic.width + 1;
-        temp_x += 2 + Generic.x;
-
-		if(bg_collision_sub() & COL_ALL) return 1;
-
-		return 0;
-	}
+    return 0;
 }
 
 
