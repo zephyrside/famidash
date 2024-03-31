@@ -15,25 +15,23 @@ char bg_collision_sub(void){
     return is_solid[collision];
 }
 
+// replaces tmp5 = add_scroll_y(tmp1, scroll_y); temp_y = low_byte(tmp5); temp_room = high_byte(tmp5);
+#define add_scroll_y_base(a, b) asm("lda %v\n jsr pusha \n lda %v \n ldx %v+1 \n jsr _add_scroll_y \n ", a, b, b)
+#define add_scroll_y_store_to_temp_y_room(a, b) add_scroll_y_base(a, b); asm("sta %v \n stx %v ", temp_y, temp_room)
 
 
 char bg_coll_L(void){
     // check 2 points on the left side
-    tmp5 = Generic.x + low2bytes(scroll_x);
-    temp_x = (char)tmp5; // low byte
+    temp_x = Generic.x + low_byte(scroll_x);
 
     eject_L = temp_x | 0xf0;
 	tmp1 = Generic.y + 2;
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-	temp_y = (char)tmp5; // low byte
-	temp_room = tmp5 >> 8; // high byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
     if(bg_collision_sub() & COL_ALL) return 1;
     
     tmp1 = Generic.y + Generic.height;
     tmp1 -= 2;
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-	temp_y = (char)tmp5; // low byte
-	temp_room = tmp5 >> 8; // high byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
     if(bg_collision_sub() & COL_ALL) return 1;
     
     return 0;
@@ -41,13 +39,10 @@ char bg_coll_L(void){
 
 char bg_coll_R(void){
     // check 2 points on the right side
-	tmp5 = Generic.x + low2bytes(scroll_x) + Generic.width -1;
-    temp_x = (char)tmp5; // low byte
+	temp_x = Generic.x + low_byte(scroll_x) + Generic.width - 1;
 
 	tmp1 = Generic.y + (Generic.height >> 1);
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-	temp_y = (char)tmp5; // low byte
-	temp_room = tmp5 >> 8; // high byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
     if(bg_collision_sub() & COL_ALL) return 1;
     
     return 0;
@@ -55,18 +50,14 @@ char bg_coll_R(void){
 
 char bg_coll_U(void){
     // check 2 points on the bottom side
-	tmp5 = Generic.x + low2bytes(scroll_x) -1;
-    temp_x = (char)tmp5; // low byte
+	temp_x = Generic.x + low_byte(scroll_x) -1 ;
     
 	tmp1 = Generic.y-1;
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-    temp_y = (char)tmp5; // low byte
-	temp_room = tmp5 >> 8; // high byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
     eject_U = temp_y | 0xf0;
     if(bg_collision_sub() & COL_ALL) return 1;
     
-    tmp5 = Generic.x + low2bytes(scroll_x) + Generic.width +1;
-    temp_x = (char)tmp5; // low byte
+    temp_x = Generic.x + low_byte(scroll_x) + Generic.width + 1;
     
     if(bg_collision_sub() & COL_ALL) return 1;
     
@@ -76,18 +67,14 @@ char bg_coll_U(void){
 char bg_coll_D(void){
 	if(bg_collision_sub() & COL_BOTTOM) {
 		// check 2 points on the bottom side
-		tmp5 = Generic.x + low2bytes(scroll_x) -1;
-		temp_x = (char)tmp5; // low byte
+		temp_x = Generic.x + low_byte(scroll_x) -1;
 
 		tmp1 = Generic.y + (Generic.height/2);
-		tmp5 = add_scroll_y(tmp1, scroll_y);
-		temp_y = (char)tmp5; // low byte
-		temp_room = tmp5 >> 8; // high byte
+		add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
 		eject_D = (temp_y + 1) & 0x0f;
 		if(bg_collision_sub() & COL_BOTTOM) return 1;
 
-		tmp5 = Generic.x + low2bytes(scroll_x) + Generic.width +1;
-		temp_x = (char)tmp5; // low byte
+		temp_x = Generic.x + low_byte(scroll_x) + Generic.width +1;
 
 		if(bg_collision_sub() & COL_BOTTOM) return 1;
 
@@ -101,18 +88,15 @@ char bg_coll_D(void){
 	
 	else {
 		// check 2 points on the bottom side
-		tmp5 = Generic.x + low2bytes(scroll_x) -1;
-		temp_x = (char)tmp5; // low byte
+		temp_x = Generic.x + low_byte(scroll_x) -1;
 
 		tmp1 = Generic.y + Generic.height;
-		tmp5 = add_scroll_y(tmp1, scroll_y);
-		temp_y = (char)tmp5; // low byte
-		temp_room = tmp5 >> 8; // high byte
+		add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
 		eject_D = (temp_y + 1) & 0x0f;
 		if(bg_collision_sub() & COL_ALL) return 1;
-
-		tmp5 = Generic.x + low2bytes(scroll_x) + Generic.width +1;
-		temp_x = (char)tmp5; // low byte
+		
+        // temp_x = Generic.x + low_byte(scroll_x) + Generic.width + 1;
+        temp_x += 2 + Generic.x;
 
 		if(bg_collision_sub() & COL_ALL) return 1;
 
@@ -125,21 +109,17 @@ char bg_coll_D(void){
 char bg_coll_D2(void){
     // check 2 points on the bottom side
     // a little lower, for jumping
-    tmp5 = Generic.x + low2bytes(scroll_x);
-    temp_x = (char)tmp5; // low byte
+    temp_x = Generic.x + low_byte(scroll_x);
 
     tmp1 = Generic.y + Generic.height + 2;
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-    temp_y = (char)tmp5; // low byte
-    temp_room = tmp5 >> 8; // high byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
     if(bg_collision_sub() & COL_ALL) {
         cube_rotate = 0x0080; 
         cube_data = 0x00;
         return 1;
         }
 
-    tmp5 = Generic.x + low2bytes(scroll_x) + Generic.width;
-    temp_x = (char)tmp5; // low byte
+    temp_x = Generic.x + low_byte(scroll_x) + Generic.width;
     
     if(bg_collision_sub() & COL_ALL) {
         cube_rotate = 0x0080; 
@@ -154,22 +134,18 @@ char bg_coll_D2(void){
 char bg_coll_U2(void){
     // check 2 points on the bottom side
     // a little lower, for jumping
-    tmp5 = Generic.x + low2bytes(scroll_x);
-    temp_x = (char)tmp5; // low byte
+    temp_x = Generic.x + low_byte(scroll_x);
 
     tmp1 = Generic.y - 2;
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-    temp_y = (char)tmp5; // low byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
     --temp_y;
-    temp_room = tmp5 >> 8; // high byte
     if(bg_collision_sub() & COL_ALL) {
         cube_rotate = 0x0080; 
         cube_data = 0x00;
         return 1;
     }
 
-    tmp5 = Generic.x + low2bytes(scroll_x) + Generic.width;
-    temp_x = (char)tmp5; // low byte
+    temp_x = Generic.x + low_byte(scroll_x) + Generic.width;
     
     if(bg_collision_sub() & COL_ALL) {
         cube_rotate = 0x0080; 
@@ -187,13 +163,10 @@ void bg_coll_death(void) {
 
 
 	// middle point collision to kill, since hitboxes don't exist
-	tmp5 = Generic.x + low2bytes(scroll_x) + (Generic.width >> 1)-1;
-	temp_x = (char)tmp5; // low byte
+	temp_x = Generic.x + low_byte(scroll_x) + (Generic.width >> 1)-1;
 
 	tmp1 = Generic.y + (Generic.width >> 1);
-	tmp5 = add_scroll_y(tmp1, scroll_y);
-    temp_y = (char)tmp5; // low byte
-    temp_room = tmp5 >> 8; // high byte
+	add_scroll_y_store_to_temp_y_room(tmp1, scroll_y);
 
 	if(bg_collision_sub() ) cube_data = 0x01;
 
