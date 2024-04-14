@@ -1,6 +1,5 @@
-//extern int SPRITE_BANK;
-
-#define SPR_BANK_00 0x1C
+//! Keep this in sync with mmc3.cfg
+#define SPR_BANK_00 28
 
 
 void load_next_sprite(void){
